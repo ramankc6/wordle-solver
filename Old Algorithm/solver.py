@@ -1,6 +1,7 @@
 import random
 from collections import Counter
 
+grade_guess_cache = {}
 
 # Make a list of words from the wordbank
 def read_word_bank(filename):
@@ -13,23 +14,28 @@ def read_word_bank(filename):
 
 #Find the letters that match the guess
 def grade_guess(answer, guess):
+    if (answer, guess) in grade_guess_cache:
+        return grade_guess_cache[(answer, guess)]
     green = 0
     yellow = 0
-    unmatched_answer = list(answer)
-    unmatched_guess = list(guess)
+    unmatched_answer = set(answer)
+    unmatched_guess = set(guess)
+    yellow_letters = []
+    green_letters = []
 
     for i in range(len(answer)):
         if answer[i] == guess[i]:
             green += 1
-            unmatched_answer.remove(answer[i])
-            unmatched_guess.remove(guess[i])
+            green_letters.append(answer[i])
+            unmatched_answer.discard(answer[i])
+            unmatched_guess.discard(guess[i])
 
-    for letter in unmatched_guess:
-        if letter in unmatched_answer:
-            yellow += 1
-            unmatched_answer.remove(letter)
+    yellow_letters = list(unmatched_answer & unmatched_guess)
+    yellow = len(yellow_letters)
 
-    return green, yellow
+    grade_guess_cache[(answer, guess)] = (green, yellow, green_letters, yellow_letters)
+    return green, yellow, green_letters, yellow_letters
+
 
 #Solve using random guess
 def random_solver (answer, word_list):
@@ -42,11 +48,11 @@ def random_solver (answer, word_list):
         attempts += 1
         print(f'Guess {attempts}: {guess}')
 
-        green, yellow = grade_guess(answer, guess)
+        green, yellow, green_letters, yellow_letters = grade_guess(answer, guess)
         if green == 5:
             # print(f'Guessed {guess} in {attempts} attempts')
             break
-        remaining_words = [word for word in remaining_words if grade_guess(word, guess) == (green, yellow)]
+        remaining_words = [word for word in remaining_words if grade_guess(word, guess) == (green, yellow, green_letters, yellow_letters)]
     return attempts
 
 
@@ -59,21 +65,32 @@ def most_common_solver(answer, word_list):
     print('Most Common Guesser')
     remaining_words = word_list.copy()
     attempts = 0
+    green_letters = []
+    yellow_letters = []
 
     while remaining_words:
-        common_letters = ''.join(most_common_letters(remaining_words, 5))
-        if attempts > 0:
-            guess = random.choice([word for word in remaining_words if set(word) & set(common_letters)])
-        else:
+        common_letters = ''.join(remaining_words)
+        for letter in green_letters:
+            common_letters.replace(letter, '', len(remaining_words))
+        for letter in yellow_letters:
+            common_letters.replace(letter, '', len(remaining_words))
+        common_letters = most_common_letters(remaining_words, 5)
+        if attempts > 1:
+            word_scores = [(word, len(set(word) & set(common_letters))) for word in remaining_words]
+            word_scores_sorted = sorted(word_scores, key=lambda x: x[1], reverse=True)
+            guess = word_scores_sorted[0][0]
+        elif attempts == 0:
             guess = 'salet'
+        elif attempts == 1:
+            guess = 'crony'
         attempts += 1
         print(f'Guess {attempts}: {guess}')
 
-        green, yellow = grade_guess(answer, guess)
+        green, yellow, green_letters, yellow_letters = grade_guess(answer, guess)
         if green == 5:
             # print(f'Guessed {guess} in {attempts} attempts')
             break
-        remaining_words = [word for word in remaining_words if grade_guess(word, guess) == (green, yellow)]
+        remaining_words = [word for word in remaining_words if grade_guess(word, guess) == (green, yellow, green_letters, yellow_letters)]
     return attempts
 
 #Solve using best possible guess

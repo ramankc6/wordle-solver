@@ -25,17 +25,21 @@ def grade_guess(answer, guess):
     yellow = 0
     unmatched_answer = set(answer)
     unmatched_guess = set(guess)
+    yellow_letters = []
+    green_letters = []
 
     for i in range(len(answer)):
         if answer[i] == guess[i]:
             green += 1
+            green_letters.append(answer[i])
             unmatched_answer.discard(answer[i])
             unmatched_guess.discard(guess[i])
 
-    yellow = len(unmatched_guess & unmatched_answer)
+    yellow_letters = list(unmatched_answer & unmatched_guess)
+    yellow = len(yellow_letters)
 
-    grade_guess_cache[(answer, guess)] = (green, yellow)
-    return green, yellow
+    grade_guess_cache[(answer, guess)] = (green, yellow, set(green_letters), set(yellow_letters))
+    return green, yellow, set(green_letters), set(yellow_letters)
 
 
 @lru_cache(maxsize=None)
@@ -45,11 +49,12 @@ def entropy(word_list):
     return -sum(probability * math.log2(probability) for _ in word_list)
 
 
-def conditional_entropy(word_list, candidate, all_combinations):
+def conditional_entropy(word_list, candidate, all_cbinations):
     scores = defaultdict(list)
 
     for word in word_list:
         score = grade_guess(candidate, word)
+        score = score[0],score[1]
         scores[score].append(word)
 
     total_entropy = 0
@@ -85,8 +90,8 @@ def best_guess(word_list, all_combinations):
             if info_gain > max_information_gain:
                 max_information_gain = info_gain
                 best_guess = candidate
-            progress = (idx + 1) / len(sorted_combinations) * 100
-            print(f"Progress: {progress:.2f}%")
+            # progress = (idx + 1) / len(sorted_combinations) * 100
+            # print(f"Progress: {progress:.2f}%")
             if max_information_gain >= 0.99 * current_entropy:
                 break
 
@@ -97,23 +102,27 @@ def best_guess_solver(answer, word_list):
     print('Best Guess Guesser')
     remaining_words = word_list.copy()
     attempts = 0
+    green_letters = {}
+    yellow_letters = {}
+    green = 0
+    yellow = 0
 
     while remaining_words:
         guess = best_guess(remaining_words, remaining_words) if attempts > 0 else "slate"
         attempts += 1
         print(f'Guess {attempts}: {guess}')
 
-        green, yellow = grade_guess(answer, guess)
+        green, yellow, green_letters, yellow_letters = grade_guess(answer, guess)
         if green == 5:
             print(f'Guessed {guess} in {attempts} attempts')
             break
-        remaining_words = {word for word in remaining_words if grade_guess(guess, word) == (green, yellow)}
+        remaining_words = {word for word in remaining_words if grade_guess(guess, word) == (green, yellow, green_letters, yellow_letters)}
     return attempts
 
 
 def test(word_list, bank_size, num_tests):
-    word_list = set(random.sample(word_list, bank_size))
-    answers = random.sample(read_word_bank('answers.csv'), num_tests)
+    word_list = set(word_list)
+    answers = read_word_bank('realanswers.csv')
     print('testing...')
     beat_wordle = 0
     total_attempts = 0
@@ -132,9 +141,9 @@ def test(word_list, bank_size, num_tests):
 
 def main():
     start_time = time.time()
-    word_list = read_word_bank('wordbank.csv')
+    word_list = read_word_bank('realwordbank.csv')
     bank_size = 14000
-    num_tests = 317
+    num_tests = 2
     test(word_list, bank_size, num_tests)
     end_time = time.time()
     print(f'Time taken: {end_time - start_time} seconds')

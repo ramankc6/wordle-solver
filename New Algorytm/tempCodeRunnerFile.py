@@ -1,0 +1,1 @@
+    answers = random.sample(answers, num_tests)
