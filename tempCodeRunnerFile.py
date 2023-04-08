@@ -1,1 +1,1 @@
-scores[score]
+            # print(f"Progress: {progress:.2f}%")
