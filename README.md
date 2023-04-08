@@ -75,7 +75,7 @@ This is a more optimized version of Best Guess. It usses conditional entropy to 
 ##### Stats
 
 Word Bank Size: 14000<br />
-Number of Test: 10000
+Number of Test: 317
 
 Chance of beating Wordle (<= 6 guesses): 88.01%<br />
 Average guesses: 5.52<br />
