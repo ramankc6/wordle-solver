@@ -121,13 +121,14 @@ def best_guess_solver(answer, word_list):
         attempts += 1
         print(f'Guess {attempts}: {guess}')
 
-        green, yellow = grade_guess(answer, guess)
-        if green == 5:
+        result = grade_guess(answer, guess)  # Store the full tuple returned by grade_guess
+        if result[0] == 5:  # Check if green == 5
             # print(f'Guessed {guess} in {attempts} attempts')
             break
-        remaining_words = {word for word in remaining_words if grade_guess(guess, word) == (green, yellow)}
+        remaining_words = {word for word in remaining_words if grade_guess(word, guess) == result}  # Compare the full tuple
         all_combinations.discard(guess)
     return attempts
+
 
 #Finds the average number of attempts for a given algorithm after 1000 trials
 def tester(answer, word_list, algorithm):

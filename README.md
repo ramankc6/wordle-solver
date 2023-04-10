@@ -70,20 +70,20 @@ Time taken to run: N/A<br />
 
 ##### Explination
 
-This is a more optimized version of Best Guess. It usses conditional entropy to find the best guess. It also uses cashe, parallelization and heuristics to optimize the speed. It was tested agains 300+ real past Wordle answers.
+This is a more optimized version of Best Guess. It usses conditional entropy to find the best guess. It also uses cashe, parallelization and heuristics to optimize the speed. It was tested agains 2000+ real Wordle answers.
 
 ##### Stats
 
-Word Bank Size: 14000<br />
-Number of Test: 317
+Word Bank Size: 12971<br />
+Number of Test: 2314
 
-Chance of beating Wordle (<= 6 guesses): 88.01%<br />
-Average guesses: 5.52<br />
-Time taken to run: 3277.33 seconds<br />
+Chance of beating Wordle (<= 6 guesses): 99.70%<br />
+Average guesses: 3.67<br />
+Time taken to run: 112.33 seconds<br />
 
 # Usage
 
-The first 3 algorytms (Random Solver, Most Common Letter and Best Guess Unoptimized) are in the "Old Algorithm" folder. The optimized best guess algorytms is in "New Algorytm" folder.
+The first 3 algorytms (Random Solver, Most Common Letter and Best Guess Unoptimized) are in the "Old_Out_Dated_Algos" folder. The optimized best guess algorytms is in "WordleAlgo" folder.
 
 To run or test the first 3 alogrytms, run the "main.py" folder. I would recommend using Google Colab to run the "New Agorithm".
 
