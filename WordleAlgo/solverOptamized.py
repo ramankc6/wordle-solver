@@ -26,19 +26,25 @@ def grade_guess(answer, guess):
     unmatched_guess = set(guess)
     yellow_letters = []
     green_letters = []
+    green_location = []
+    yellow_location = []
 
     for i in range(len(answer)):
         if answer[i] == guess[i]:
             green += 1
             green_letters.append(answer[i])
+            green_location.append((answer[i], i))
             unmatched_answer.discard(answer[i])
             unmatched_guess.discard(guess[i])
+        if guess[i] in set(answer):
+            yellow += 1
+            if guess[i] != answer[i]:
+              yellow_location.append((guess[i], i))
 
     yellow_letters = list(unmatched_answer & unmatched_guess)
     yellow = len(yellow_letters)
-
-    grade_guess_cache[(answer, guess)] = (green, yellow, set(green_letters), set(yellow_letters))
-    return green, yellow, set(green_letters), set(yellow_letters)
+    grade_guess_cache[(answer, guess)] = (green, yellow, set(green_letters), set(yellow_letters), set(green_location), set(yellow_location))
+    return green, yellow, set(green_letters), set(yellow_letters), set(green_location), set(yellow_location)
 
 
 @lru_cache(maxsize=None)
@@ -141,14 +147,19 @@ def best_guess_solver(answer, word_list):
           guess = best_entropy_word
       else:
           guess = best_guess_func(remaining_words, remaining_words)
-      # print(f'Guess {attempts}: {guess}')
       attempts += 1
-      green, yellow, green_letters, yellow_letters = grade_guess(answer, guess)
+      print(f'Guess {attempts}: {guess}')
+      green, yellow, green_letters, yellow_letters, green_location, yellow_location = grade_guess(answer, guess)
       
       if green == 5:
           break
-      
-      remaining_words = {word for word in remaining_words if grade_guess(guess, word) == (green, yellow, green_letters, yellow_letters)}
+
+      remaining_words = {word for word in remaining_words if grade_guess(guess, word)[:-1] == (green, yellow, green_letters, yellow_letters, green_location)}
+
+      for letters in yellow_location:
+        for word in remaining_words:
+          if (word[letters[1]] == letters[0]):
+            remaining_words.remove(word)
       remaining_words.discard('salet')
 
     return attempts
@@ -157,7 +168,7 @@ def best_guess_solver(answer, word_list):
 def test(word_list, bank_size, num_tests):
     word_list = set(word_list)
     answers = read_word_bank('realanswers.csv')
-    # answers = {'piper', 'refer'}
+    # answers = {'apple'}
     print('testing...')
     beat_wordle = 0
     total_attempts = 0
@@ -180,11 +191,11 @@ def test(word_list, bank_size, num_tests):
 
 def main():
     start_time = time.time()
-    word_list = read_word_bank('data/realwordbank.csv')
+    word_list = read_word_bank('realwordbank.csv')
     bank_size = 14000
     num_tests = 2
     test(word_list, bank_size, num_tests)
     end_time = time.time()
     print(f'Time taken: {end_time - start_time} seconds')
-  
+
 main()
